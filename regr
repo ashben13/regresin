@@ -1,0 +1,40 @@
+import sys
+from pathlib import Path
+
+import pandas as pd
+import matplotlib.pyplot as plt
+from scipy.stats import linregress
+
+
+def plot_regression(csv_path: Path, output_path: Path) -> None:
+    """Read `csv_path` with `time` and `response` columns and save a regression plot."""
+    df = pd.read_csv(csv_path)
+    if 'time' not in df.columns or 'response' not in df.columns:
+        raise ValueError("CSV must contain 'time' and 'response' columns")
+    x = df['time']
+    y = df['response']
+    result = linregress(x, y)
+    plt.figure()
+    plt.scatter(x, y, label='observed')
+    y_fit = result.intercept + result.slope * x
+    plt.plot(x, y_fit, color='red',
+             label=f"fit: y={result.slope:.3f}x + {result.intercept:.3f}\nR²={result.rvalue ** 2:.3f}")
+    plt.xlabel('Time')
+    plt.ylabel('Response')
+    plt.legend()
+    plt.tight_layout()
+    plt.savefig(output_path)
+
+
+def main(argv: list[str]) -> int:
+    if len(argv) != 3:
+        print(f"Usage: {argv[0]} <input.csv> <output.png>")
+        return 1
+    csv_path = Path(argv[1])
+    output_path = Path(argv[2])
+    plot_regression(csv_path, output_path)
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main(sys.argv))
